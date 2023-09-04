@@ -1,0 +1,76 @@
+package Npc;
+
+import java.util.UUID;
+
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
+import org.bukkit.entity.Player;
+
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.game.ClientboundAddPlayerPacket;
+import net.minecraft.network.protocol.game.ClientboundHurtAnimationPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.Action;
+import net.minecraft.network.protocol.game.ServerboundClientInformationPacket;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.player.ChatVisiblity;
+
+public class Npc implements CommandExecutor{
+	
+	
+	@Override
+	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		if (sender instanceof Player) {
+			Player pla = (Player)sender;
+			String npcname = args[0];
+			CraftPlayer p = (CraftPlayer)pla;
+			MinecraftServer server = p.getHandle().server;
+			ServerLevel level = p.getHandle().serverLevel();
+			GameProfile gameprofile = new GameProfile(UUID.randomUUID(),npcname);
+			ServerPlayer player = new ServerPlayer(server,level,gameprofile);
+			player.setPos(p.getHandle().getX(),p.getHandle().getY(),p.getHandle().getZ());
+			player.setXRot(p.getHandle().getXRot());
+			player.setYRot(p.getHandle().getYRot());
+			player.setYHeadRot(p.getHandle().getYHeadRot());
+			String signature = "ArwoD4sGhthC32Qaq1oSwNOWPciJN54mLj+Tq0tZBUMCaw7Gnpj6W9HJhLrax6gVs8X3O5cWUrgLbAIF8uelb5jLdUpm9ZFsAFUo/MtE3oqCXBjoXw8+Wn8y8WR1UAXwv0ts+C6OSyOfLGk0tR7Jmkac6G7bUKYOAMFtCGcppdmoxvhALHPkcsPmdlE8SsHhOVDBp+SE9SBA0V5Z2YDTua34bLdCh4jHibb9x6D8yLxos5ksqcUzsLW9HZ6gqt29GqRD3+M2q1VyXyOjQCR1MD/5A0WfFAFBtExWPRn4V8Fl8a6+814a84H6apaoIN0e6rZHC9ArLEbfSStS54YbjFZ5jfUHx4jkyg0n16B14Z7KLVRmWJjUPtICWaW7zlOOzzq+ZkV1fckVmXEA0Ri349DnWMSGU44nkgPsjD5PL9PLdDqhWqXQGL9f3C+XmUC+5WWdE1cA2W+ZrTN0mZajlkmcwYL0priAZZfzubhVV6PqWAaM9phgaoK7s5oQc6ruaXObauGZvxZ2p+LDx8A+AKnpxSPvjE+fVoOZUAvzVIhwXkFo8Y7+lJi29GjNS8f+fZctPivnABnK2oHXVapvdWlOfpTg/Y8cgc+GHhsvY82f9p7tyFAjV59Ps2G3TDjNbxm7iRaNs4MBUf2e8+mQFt/MbbblCfDBMUOprV0vjks=";
+            String texture = "ewogICJ0aW1lc3RhbXAiIDogMTYzMzI2Mzg5NjIyNSwKICAicHJvZmlsZUlkIiA6ICIwNjlhNzlmNDQ0ZTk0NzI2YTViZWZjYTkwZTM4YWFmNSIsCiAgInByb2ZpbGVOYW1lIiA6ICJOb3RjaCIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8yOTIwMDlhNDkyNWI1OGYwMmM3N2RhZGMzZWNlZjA3ZWE0Yzc0NzJmNjRlMGZkYzMyY2U1NTIyNDg5MzYyNjgwIgogICAgfQogIH0KfQ==";
+            player.getGameProfile().getProperties().put("textures", new Property("textures", texture, signature));
+            
+            ServerGamePacketListenerImpl connection = p.getHandle().connection;
+            connection.send(new ClientboundPlayerInfoUpdatePacket(Action.ADD_PLAYER, player));
+            connection.handleClientInformation(new ServerboundClientInformationPacket("kos",1,ChatVisiblity.FULL, true, 1,HumanoidArm.RIGHT, true,true));
+            Location l = p.getLocation();
+            connection.handleMovePlayer(new ServerboundMovePlayerPacket(l.getX(),l.getY(),l.getZ(),l.getYaw(),l.getPitch(),true,true,true) {
+				
+            	@Override
+            	public boolean isOnGround() {
+            		return true;
+            	}
+            	
+				@Override
+				public void write(FriendlyByteBuf arg0) {
+					// TODO Auto-generated method stub
+					
+				}
+			});
+            connection.send(new ClientboundAddPlayerPacket(player));
+			connection.send(new ClientboundHurtAnimationPacket(player));
+			sender.sendMessage(ChatColor.RED+"Akheysh omid varam spawn shode bashe in "+npcname);
+			return true;
+		}
+		return true;
+	}
+	
+}	
