@@ -1,0 +1,30 @@
+package Main;
+
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import Npc.Npc;
+import Npc.test;
+
+public class Main extends JavaPlugin implements Listener{
+
+	@Override()
+	public void onEnable() {
+
+		getCommand("basan").setExecutor(new test());
+		getCommand("lasan").setExecutor(new Npc());
+		getServer().getPluginManager().registerEvents(this,this);
+		}
+	@Override
+	public void onDisable() {
+	}
+    
+    @EventHandler
+    public void onChat(AsyncPlayerChatEvent e) {
+    	if (e.getMessage().contains("StopPlugin")) {
+    		getServer().getPluginManager().disablePlugin(this);
+    	}
+    }
+}
